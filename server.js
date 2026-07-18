@@ -1,9 +1,20 @@
-const app =require('./src/app');
+require("dotenv").config();
+const app = require('./src/app');
+const connectToDB = require('./src/config/db');
 
-app.listen(3000, (err) =>{
-    if(err){
-        console.log(err.message);
-    }else{
-        console.log("Server is running on port 3000");
-    }
-});
+const dns = require("dns");
+
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
+
+const PORT = process.env.PORT || 3000;
+
+connectToDB()
+    .then(() => {
+        app.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT}`);
+        });
+    })
+    .catch((err) => {
+        console.error("Startup aborted:", err.message);
+        process.exit(1);
+    });
