@@ -16,5 +16,6 @@ connectToDB()
     })
     .catch((err) => {
         console.error("Startup aborted:", err.message);
+        //if something went wrong so exit the DB!
         process.exit(1);
     });

@@ -37,20 +37,14 @@ const userSchema = mongoose.Schema(
 );
 
 // This function runs before saving a user
-userSchema.pre("save", async function (next) {
-  // If the password has not changed, skip hashing
-  if (!this.isModified("password")) {
-    return next();
-  }
+userSchema.pre("save", async function () {
+    console.log(">>> NEW PRE SAVE HOOK RUNNING <<<");
 
-  // Convert the plain password into a hashed password
-  const hash = await bcrypt.hash(this.password, 10);
+    if (!this.isModified("password")) {
+        return;
+    }
 
-  // Save the hashed password instead of the original password
-  this.password = hash;
-
-  // Continue saving the user
-  next();
+    this.password = await bcrypt.hash(this.password, 10);
 });
 
 // Create a custom method to compare passwords during login
