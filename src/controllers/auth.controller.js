@@ -58,6 +58,67 @@ async function userRegisterController(req, res) {
     }
 }
 
+/**
+ * User Login Controller
+ * POST /api/auth/login
+ */
+async function userLoginController(req, res) {
+    try {
+        const { email, password } = req.body;
+
+        const user = await userModel.findOne({ email });
+
+        if (!user) {
+            return res.status(401).json({
+                message: "Email or Password is Invalid",
+                status: "failed",
+            });
+        }
+
+        const isValidPassword = await user.comparePassword(password);
+
+        if (!isValidPassword) {
+            return res.status(401).json({
+                message: "Email or Password is Invalid",
+                status: "failed",
+            });
+        }
+
+        const token = jwt.sign(
+            { userId: user._id },
+            process.env.JWT_SECRET || "dev-secret",
+            {
+                expiresIn: "3d",
+            }
+        );
+
+        res.cookie("token", token, {
+            httpOnly: true,
+        });
+
+        return res.status(200).json({
+            message: "User Logged In successfully.",
+            status: "success",
+            user: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+            },
+            token,
+        });
+    } catch (error) {
+        console.error("========== LOGIN ERROR ==========");
+        console.error(error);
+        console.error("=================================");
+
+        return res.status(500).json({
+            message: error.message,
+            status: "failed",
+        });
+    }
+}
+
 module.exports = {
     userRegisterController,
+    userLoginController
 };
