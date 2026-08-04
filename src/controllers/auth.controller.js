@@ -1,5 +1,6 @@
 const userModel = require("../model/user.model");
 const jwt = require("jsonwebtoken");
+const emailService = require('../services/email.service')
 
 /**
  * User Register Controller
@@ -10,7 +11,7 @@ async function userRegisterController(req, res) {
         const { email, password, name } = req.body;
 
         const isExists = await userModel.findOne({ email });
-
+        
         if (isExists) {
             return res.status(422).json({
                 message: "User already exists with this email.",
@@ -66,7 +67,7 @@ async function userLoginController(req, res) {
     try {
         const { email, password } = req.body;
 
-        const user = await userModel.findOne({ email });
+        const user = await userModel.findOne({ email }).select("+password")
 
         if (!user) {
             return res.status(401).json({
@@ -106,6 +107,8 @@ async function userLoginController(req, res) {
             },
             token,
         });
+
+        await emailService.sendRegistrationEmail(user.email , user.name);
     } catch (error) {
         console.error("========== LOGIN ERROR ==========");
         console.error(error);
